@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard | Campus Canteen{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <div>
+        <div class="admin-badge">⚡ Staff Control Panel</div>
+        <h1 class="page-title">Canteen Management Dashboard</h1>
+        <p class="page-subtitle">Manage menu inventory, update live order statuses, and view sales aggregations.</p>
+    </div>
+    <div class="admin-header-actions">
+        <a href="/sales" target="_blank" class="btn btn-outline" title="Open raw MongoDB aggregation output">
+            <span>📊 Raw Sales JSON</span>
+        </a>
+    </div>
+</div>
+
+<!-- Admin KPI Summary Stats -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon-wrapper stat-icon-orders">📦</div>
+        <div class="stat-details">
+            <span class="stat-label">Total Orders</span>
+            <h2 class="stat-value">{{ total_orders }}</h2>
+            <span class="stat-caption">All-time placed orders</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon-wrapper stat-icon-revenue">💰</div>
+        <div class="stat-details">
+            <span class="stat-label">Total Revenue</span>
+            <h2 class="stat-value">₹{{ revenue }}</h2>
+            <span class="stat-caption">Excludes cancelled orders</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon-wrapper stat-icon-menu">🍽️</div>
+        <div class="stat-details">
+            <span class="stat-label">Menu Items</span>
+            <h2 class="stat-value">{{ items|length }}</h2>
+            <span class="stat-caption">Active food catalog</span>
+        </div>
+    </div>
+</div>
+
+<!-- 2-Column Grid for Menu Management & Add Item Form -->
+<div class="admin-grid">
+    <!-- Add New Food Item Card -->
+    <div class="admin-card add-item-card">
+        <div class="card-header">
+            <h3>➕ Add New Food Item</h3>
+            <span class="card-badge">Catalog</span>
+        </div>
+        <p class="card-desc">Insert a new food item into MongoDB <code>menu</code> collection with strict validation.</p>
+
+        <form action="/add-item" method="POST" class="admin-form">
+            <div class="form-group">
+                <label for="food-name">Food Item Name <span class="required">*</span></label>
+                <input type="text" id="food-name" name="name" class="form-control" placeholder="e.g. Masala Dosa" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-half">
+                    <label for="food-category">Category <span class="required">*</span></label>
+                    <select id="food-category" name="category" class="form-control form-select" required>
+                        <option value="Snacks">🥟 Snacks</option>
+                        <option value="Meals">🍛 Meals</option>
+                        <option value="Beverages">☕ Beverages</option>
+                    </select>
+                </div>
+
+                <div class="form-group col-half">
+                    <label for="food-price">Price (₹) <span class="required">*</span></label>
+                    <input type="number" id="food-price" name="price" class="form-control" placeholder="e.g. 50" min="1" step="0.01" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">
+                <span>➕ Add Item to Menu</span>
+            </button>
+        </form>
+    </div>
+
+    <!-- Live Menu Inventory Table -->
+    <div class="admin-card menu-table-card">
+        <div class="card-header">
+            <h3>📋 Manage Menu Inventory ({{ items|length }})</h3>
+        </div>
+        <p class="card-desc">Live items currently purchasable by students in the canteen.</p>
+
+        <div class="table-wrapper">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Food Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th class="text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>
+                            <strong class="item-name-cell">{{ item.name }}</strong>
+                        </td>
+                        <td>
+                            <span class="category-badge category-{{ item.category|lower }}">
+                                {% if item.category == 'Snacks' %}🥟 Snacks
+                                {% elif item.category == 'Meals' %}🍛 Meals
+                                {% elif item.category == 'Beverages' %}☕ Beverages
+                                {% else %}{{ item.category }}{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="table-price">₹{{ item.price }}</span>
+                        </td>
+                        <td class="text-right">
+                            <form action="/delete-item/{{ item._id }}" method="POST"
+                                  onsubmit="return confirm('Are you sure you want to delete {{ item.name }}?')" class="inline-form">
+                                <button class="btn btn-delete btn-sm" type="submit" title="Delete {{ item.name }}">
+                                    🗑️ Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center">No menu items found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Manage Live Orders Section -->
+<section class="admin-section">
+    <div class="section-header">
+        <div>
+            <h2 class="section-title">Manage Customer Orders ({{ orders|length }})</h2>
+            <p class="section-subtitle">Update order preparation and fulfillment status.</p>
+        </div>
+    </div>
+
+    <div class="admin-orders-grid">
+        {% for order in orders %}
+        {% set status = order.status|default('Pending') %}
+        <div class="admin-order-card status-border-{{ status|lower }}">
+            <div class="admin-order-top">
+                <div>
+                    <h4 class="order-student-title">👤 {{ order.student }}</h4>
+                    <span class="order-id-sub">#{{ order._id|string }}</span>
+                </div>
+                <div class="order-top-right">
+                    <span class="admin-order-total">₹{{ order.total }}</span>
+                    <span class="payment-badge-sm">{{ order.payment }}</span>
+                </div>
+            </div>
+
+            <div class="admin-order-items-snippet">
+                <strong>Items:</strong>
+                <span class="items-summary-text">
+                    {% for item in order['items'] %}
+                        {{ item.name }} &times; {{ item.qty }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </span>
+            </div>
+
+            <div class="admin-order-date">
+                🕒 {% if order.date %}{{ order.date.strftime('%d-%m-%Y %H:%M') }}{% else %}N/A{% endif %}
+            </div>
+
+            <!-- Status Form with Current Status Pre-selected -->
+            <form action="/update-status/{{ order._id }}" method="POST" class="admin-status-form">
+                <div class="status-select-wrapper">
+                    <label class="status-label">Status:</label>
+                    <select name="status" class="form-control form-select-sm status-dropdown">
+                        <option value="Pending" {% if status == 'Pending' %}selected{% endif %}>⏳ Pending</option>
+                        <option value="Preparing" {% if status == 'Preparing' %}selected{% endif %}>👨‍🍳 Preparing</option>
+                        <option value="Completed" {% if status == 'Completed' %}selected{% endif %}>✓ Completed</option>
+                        <option value="Cancelled" {% if status == 'Cancelled' %}selected{% endif %}>✕ Cancelled</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-update btn-sm">Update</button>
+            </form>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">📦</span>
+            <h3>No orders available</h3>
+            <p>No orders have been submitted yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Aggregation Analytics Reports Section -->
+<section class="admin-section">
+    <div class="section-header">
+        <div>
+            <h2 class="section-title">📊 Aggregation Reports & Sales Analytics</h2>
+            <p class="section-subtitle">Real-time business insights computed via MongoDB Aggregation Pipelines.</p>
+        </div>
+        <a href="/sales" target="_blank" class="btn btn-primary btn-sm">
+            <span>🌐 View Raw API JSON (/sales)</span>
+        </a>
+    </div>
+
+    <div class="analytics-grid" id="analytics-container">
+        <!-- Revenue by Food Category Card -->
+        <div class="analytics-card">
+            <div class="analytics-card-header">
+                <h4>🍱 Revenue by Food Category</h4>
+                <span class="badge-tag">Pipeline A</span>
+            </div>
+            <div id="category-sales-report" class="analytics-content">
+                <div class="loading-spinner">Loading analytics...</div>
+            </div>
+        </div>
+
+        <!-- Sales by Payment Method Card -->
+        <div class="analytics-card">
+            <div class="analytics-card-header">
+                <h4>💳 Sales by Payment Method</h4>
+                <span class="badge-tag">Pipeline C</span>
+            </div>
+            <div id="payment-sales-report" class="analytics-content">
+                <div class="loading-spinner">Loading analytics...</div>
+            </div>
+        </div>
+
+        <!-- Top Spending Students Card -->
+        <div class="analytics-card">
+            <div class="analytics-card-header">
+                <h4>🏆 Top Spending Students</h4>
+                <span class="badge-tag">Pipeline E</span>
+            </div>
+            <div id="top-students-report" class="analytics-content">
+                <div class="loading-spinner">Loading analytics...</div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}My Cart | Campus Canteen{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Shopping Cart</h1>
+    <p class="page-subtitle">Review your selected items and confirm your order details below.</p>
+</div>
+
+<div class="cart-layout" id="cart-layout">
+    <!-- Left Column: Cart Items -->
+    <div class="cart-main">
+        <div class="cart-card">
+            <div class="cart-card-header">
+                <h3>Order Items</h3>
+                <button type="button" class="btn-clear-cart" id="btn-clear-cart" onclick="clearCart()" title="Remove all items from cart">
+                    🗑️ Clear Cart
+                </button>
+            </div>
+
+            <!-- Items container managed by script.js -->
+            <div id="cart-items" class="cart-items-container">
+                <!-- Injected via displayCart() -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Checkout & Bill Summary -->
+    <div class="cart-sidebar" id="cart-sidebar">
+        <div class="checkout-card">
+            <h3 class="checkout-title">Order Summary & Checkout</h3>
+
+            <div class="summary-breakdown">
+                <div class="summary-row">
+                    <span class="summary-label">Items Subtotal</span>
+                    <span class="summary-value" id="cart-subtotal">₹0</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Service / Tax</span>
+                    <span class="summary-value text-success">₹0 (Free)</span>
+                </div>
+                <div class="summary-divider"></div>
+                <div class="summary-row total-row">
+                    <span class="summary-label">Amount Payable</span>
+                    <span class="summary-value font-bold" id="cart-total">Total: ₹0</span>
+                </div>
+            </div>
+
+            <div class="checkout-form-section">
+                <div class="form-group">
+                    <label for="student-name">
+                        <span class="label-icon">👤</span> Student Full Name <span class="required">*</span>
+                    </label>
+                    <input type="text" id="student-name" class="form-control" placeholder="e.g., Aman Verma" required autocomplete="name">
+                    <small class="form-hint">Used for order tracking and canteen counter pickup.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="payment-method">
+                        <span class="label-icon">💳</span> Payment Method <span class="required">*</span>
+                    </label>
+                    <select id="payment-method" class="form-control form-select">
+                        <option value="Cash">💵 Cash on Counter</option>
+                        <option value="UPI" selected>📱 UPI (GPay / PhonePe / Paytm)</option>
+                        <option value="Card">💳 Debit / Credit Card</option>
+                    </select>
+                </div>
+
+                <button type="button" id="place-order-btn" class="btn btn-primary btn-block btn-place-order" onclick="placeOrder()">
+                    <span class="btn-icon">✓</span> Place Order Now
+                </button>
+
+                <div class="checkout-guarantee">
+                    <span>🔒 Safe & Secure Campus Order</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Campus Canteen | Order Food Online{% endblock %}</title>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<header class="site-header">
+    <nav class="navbar">
+        <a class="logo" href="/">
+            <span class="logo-icon">🍽️</span>
+            <span class="logo-text">Campus<span class="logo-accent">Canteen</span></span>
+        </a>
+
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+        </button>
+
+        <div class="nav-links" id="nav-links">
+            <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">
+                <span class="nav-icon">🏠</span> Home
+            </a>
+            <a href="/menu" class="nav-link {% if request.path == '/menu' %}active{% endif %}">
+                <span class="nav-icon">📜</span> Menu
+            </a>
+            <a href="/cart" class="nav-link nav-link-cart {% if request.path == '/cart' %}active{% endif %}">
+                <span class="nav-icon">🛒</span> Cart
+                <span class="cart-badge" id="nav-cart-count">0</span>
+            </a>
+            <a href="/orders" class="nav-link {% if request.path == '/orders' %}active{% endif %}">
+                <span class="nav-icon">📦</span> Orders
+            </a>
+            <a href="/admin" class="nav-link nav-link-admin {% if request.path == '/admin' %}active{% endif %}">
+                <span class="nav-icon">⚙️</span> Admin
+            </a>
+        </div>
+    </nav>
+</header>
+
+<main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <span class="alert-icon">
+                            {% if category == 'success' %}✓{% else %}⚠️{% endif %}
+                        </span>
+                        <span class="alert-text">{{ message }}</span>
+                        <button class="alert-close" onclick="this.parentElement.remove()" aria-label="Dismiss">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+    <div class="footer-container">
+        <div class="footer-brand">
+            <div class="logo">
+                <span class="logo-icon">🍽️</span>
+                <span class="logo-text">Campus<span class="logo-accent">Canteen</span></span>
+            </div>
+            <p class="footer-tagline">Fast, fresh, and hygienic food management for campus students & faculty.</p>
+        </div>
+        <div class="footer-nav">
+            <h4>Quick Links</h4>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/menu">Full Menu</a></li>
+                <li><a href="/cart">Cart</a></li>
+                <li><a href="/orders">Order History</a></li>
+                <li><a href="/admin">Admin Dashboard</a></li>
+            </ul>
+        </div>
+        <div class="footer-academic">
+            <h4>Academic Project</h4>
+            <p><strong>Course:</strong> CSE494 – Intelligent NoSQL Databases</p>
+            <p><strong>Database:</strong> MongoDB & PyMongo</p>
+            <p class="badge-tag">Academic Task 2</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2026 Campus Canteen Management System • Powered by MongoDB</p>
+    </div>
+</footer>
+
+<!-- Toast Notifications Container -->
+<div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

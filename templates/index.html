@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Home | Campus Canteen{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <span class="hero-badge">⚡ Freshly Prepared & Fast Pickup</span>
+        <h1 class="hero-title">Hungry Between Lectures? <br><span class="highlight-text">Order Campus Food Fast.</span></h1>
+        <p class="hero-subtitle">Browse daily snacks, meals, and beverages from your college canteen without standing in long queues.</p>
+        <div class="hero-actions">
+            <a href="/menu" class="btn btn-primary btn-lg">
+                <span>🍽️ Explore Menu</span>
+            </a>
+            <a href="/orders" class="btn btn-outline btn-lg">
+                <span>📦 View Past Orders</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="features-banner">
+    <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-text">
+            <h4>Skip The Queue</h4>
+            <p>Place orders in seconds from anywhere on campus.</p>
+        </div>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">🍲</div>
+        <div class="feature-text">
+            <h4>Fresh & Hygienic</h4>
+            <p>Quality ingredients cooked fresh every morning.</p>
+        </div>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">💳</div>
+        <div class="feature-text">
+            <h4>Multiple Payments</h4>
+            <p>Pay easily via UPI, Card, or Cash on pickup.</p>
+        </div>
+    </div>
+</section>
+
+<section class="popular-section">
+    <div class="section-header">
+        <div>
+            <h2 class="section-title">Popular Items Today</h2>
+            <p class="section-subtitle">Student favourites and top recommendations.</p>
+        </div>
+        <a href="/menu" class="link-arrow">View All Menu &rarr;</a>
+    </div>
+
+    <div class="food-grid">
+        {% for item in items %}
+        <div class="food-card" data-category="{{ item.category }}">
+            <div class="food-card-header">
+                <span class="category-badge category-{{ item.category|lower }}">
+                    {% if item.category == 'Snacks' %}🥟 Snacks
+                    {% elif item.category == 'Meals' %}🍛 Meals
+                    {% elif item.category == 'Beverages' %}☕ Beverages
+                    {% else %}{{ item.category }}{% endif %}
+                </span>
+                <span class="food-emoji">
+                    {% if 'Burger' in item.name %}🍔
+                    {% elif 'Samosa' in item.name %}🥟
+                    {% elif 'Chai' in item.name %}☕
+                    {% elif 'Coffee' in item.name %}🥤
+                    {% elif 'Thali' in item.name %}🍱
+                    {% elif 'Rajma' in item.name or 'Chawal' in item.name %}🍛
+                    {% elif item.category == 'Beverages' %}🧃
+                    {% elif item.category == 'Meals' %}🍲
+                    {% else %}🥪{% endif %}
+                </span>
+            </div>
+
+            <div class="food-card-body">
+                <h3 class="food-name">{{ item.name }}</h3>
+                <p class="food-desc">Prepared fresh with authentic taste and ingredients.</p>
+            </div>
+
+            <div class="food-card-footer">
+                <div class="food-price">
+                    <span class="currency">₹</span><span class="amount">{{ item.price }}</span>
+                </div>
+                <button class="btn btn-cart" onclick="addToCart('{{ item._id }}', '{{ item.name }}', {{ item.price }}, '{{ item.category }}')">
+                    <span class="btn-icon">🛒</span> Add to Cart
+                </button>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">🍽️</span>
+            <h3>No menu items available</h3>
+            <p>The canteen staff hasn't added any food items yet. Please check back later!</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Orders | Campus Canteen{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="header-content">
+        <h1 class="page-title">Order History & Tracking</h1>
+        <p class="page-subtitle">Track your recent food orders and view preparation status in real time.</p>
+    </div>
+
+    <!-- Search Form (Preserves GET action="/orders" with name="student") -->
+    <form method="GET" action="/orders" class="search-form">
+        <div class="search-input-group">
+            <span class="search-icon">🔍</span>
+            <input type="text" name="student"
+                   placeholder="Search by student name (e.g. Aman)"
+                   value="{{ student }}"
+                   class="form-control"
+                   autocomplete="off">
+            {% if student %}
+            <a href="/orders" class="btn-clear-search" title="Clear filter">&times;</a>
+            {% endif %}
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
+</div>
+
+<!-- Status Filter Pills for fast client-side sorting -->
+<div class="order-filter-bar">
+    <div class="filter-pills" id="order-status-filters">
+        <button class="pill-btn active" data-status="all">All Orders ({{ orders|length }})</button>
+        <button class="pill-btn" data-status="Pending">⏳ Pending</button>
+        <button class="pill-btn" data-status="Preparing">👨‍🍳 Preparing</button>
+        <button class="pill-btn" data-status="Completed">✓ Completed</button>
+        <button class="pill-btn" data-status="Cancelled">✕ Cancelled</button>
+    </div>
+</div>
+
+<div class="orders-list" id="orders-list">
+    {% for order in orders %}
+    {% set status = order.status|default('Pending') %}
+    <div class="order-card" data-status="{{ status }}">
+        <div class="order-card-header">
+            <div class="order-meta-left">
+                <span class="order-id-badge" title="MongoDB Order ID">#{{ order._id|string }}</span>
+                <span class="order-timestamp">
+                    🕒 {% if order.date %}{{ order.date.strftime('%d %b %Y, %I:%M %p') }}{% else %}Recently{% endif %}
+                </span>
+            </div>
+            <div class="order-meta-right">
+                <span class="status-badge status-{{ status|lower }}">
+                    {% if status == 'Pending' %}⏳ Pending
+                    {% elif status == 'Preparing' %}👨‍🍳 Preparing
+                    {% elif status == 'Completed' %}✓ Completed
+                    {% elif status == 'Cancelled' %}✕ Cancelled
+                    {% else %}{{ status }}{% endif %}
+                </span>
+            </div>
+        </div>
+
+        <div class="order-card-info">
+            <div class="order-student-info">
+                <span class="student-avatar">👤</span>
+                <div>
+                    <span class="info-label">Customer</span>
+                    <strong class="student-name-display">{{ order.student }}</strong>
+                </div>
+            </div>
+            <div class="order-payment-info">
+                <span class="info-label">Payment Method</span>
+                <span class="payment-badge">
+                    {% if order.payment == 'UPI' %}📱 UPI
+                    {% elif order.payment == 'Cash' %}💵 Cash
+                    {% elif order.payment == 'Card' %}💳 Card
+                    {% else %}{{ order.payment }}{% endif %}
+                </span>
+            </div>
+        </div>
+
+        <div class="order-items-wrapper">
+            <h4 class="items-title">Items Ordered ({{ order['items']|length }})</h4>
+            <div class="order-items-table">
+                {% for item in order['items'] %}
+                <div class="order-item-row">
+                    <span class="item-name-qty">
+                        <span class="item-bullet">•</span>
+                        <strong>{{ item.name }}</strong>
+                        <span class="item-qty-tag">&times; {{ item.qty }}</span>
+                    </span>
+                    <span class="item-calc">
+                        <span class="item-unit">₹{{ item.price }} each</span>
+                        <strong class="item-subtotal">₹{{ item.price * item.qty }}</strong>
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="order-card-footer">
+            <span class="total-label">Grand Total Paid</span>
+            <span class="total-amount">₹{{ order.total }}</span>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="empty-icon">📦</span>
+        <h3>No orders found</h3>
+        {% if student %}
+            <p>No orders matched student name "<strong>{{ student }}</strong>".</p>
+            <a href="/orders" class="btn btn-outline">View All Orders</a>
+        {% else %}
+            <p>No orders have been placed in the canteen yet.</p>
+            <a href="/menu" class="btn btn-primary">Browse Menu & Order</a>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

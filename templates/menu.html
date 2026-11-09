@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Menu | Campus Canteen{% endblock %}
+
+{% block content %}
+<div class="menu-page-header">
+    <div class="menu-intro">
+        <h1 class="page-title">Campus Food Menu</h1>
+        <p class="page-subtitle">Select your favourite snacks, meals, and beverages to order online.</p>
+    </div>
+
+    <!-- Live Search & Category Filter Controls (Front-end instant filter) -->
+    <div class="menu-filters-wrapper">
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="menu-search-input" placeholder="Search menu by name (e.g., Samosa, Coffee)..." autocomplete="off">
+            <button id="menu-search-clear" class="search-clear-btn" style="display: none;" title="Clear search">&times;</button>
+        </div>
+
+        <div class="category-tabs" id="category-tabs">
+            <button class="tab-btn active" data-category="all">
+                <span>🍽️ All Items</span>
+                <span class="tab-count" id="count-all">{{ items|length }}</span>
+            </button>
+            <button class="tab-btn" data-category="Snacks">
+                <span>🥟 Snacks</span>
+            </button>
+            <button class="tab-btn" data-category="Meals">
+                <span>🍛 Meals</span>
+            </button>
+            <button class="tab-btn" data-category="Beverages">
+                <span>☕ Beverages</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="menu-status-bar">
+    <span id="results-count" class="results-count">Showing {{ items|length }} items</span>
+</div>
+
+<div class="food-grid" id="menu-food-grid">
+    {% for item in items %}
+    <div class="food-card" data-name="{{ item.name|lower }}" data-category="{{ item.category }}">
+        <div class="food-card-header">
+            <span class="category-badge category-{{ item.category|lower }}">
+                {% if item.category == 'Snacks' %}🥟 Snacks
+                {% elif item.category == 'Meals' %}🍛 Meals
+                {% elif item.category == 'Beverages' %}☕ Beverages
+                {% else %}{{ item.category }}{% endif %}
+            </span>
+            <span class="food-emoji">
+                {% if 'Burger' in item.name %}🍔
+                {% elif 'Samosa' in item.name %}🥟
+                {% elif 'Chai' in item.name %}☕
+                {% elif 'Coffee' in item.name %}🥤
+                {% elif 'Thali' in item.name %}🍱
+                {% elif 'Rajma' in item.name or 'Chawal' in item.name %}🍛
+                {% elif item.category == 'Beverages' %}🧃
+                {% elif item.category == 'Meals' %}🍲
+                {% else %}🥪{% endif %}
+            </span>
+        </div>
+
+        <div class="food-card-body">
+            <h3 class="food-name">{{ item.name }}</h3>
+            <p class="food-desc">Freshly made canteen specialty. Hygienically prepared daily.</p>
+        </div>
+
+        <div class="food-card-footer">
+            <div class="food-price">
+                <span class="currency">₹</span><span class="amount">{{ item.price }}</span>
+            </div>
+            <button class="btn btn-cart" onclick="addToCart('{{ item._id }}', '{{ item.name }}', {{ item.price }}, '{{ item.category }}')">
+                <span class="btn-icon">🛒</span> Add to Cart
+            </button>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="empty-icon">🍽️</span>
+        <h3>No food items available</h3>
+        <p>There are no items currently listed on the canteen menu.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Filter No Results Fallback -->
+<div id="no-filter-results" class="empty-state" style="display: none;">
+    <span class="empty-icon">🔍</span>
+    <h3>No matching food items</h3>
+    <p>We couldn't find anything matching your filter. Try another keyword or category!</p>
+    <button class="btn btn-primary" onclick="resetMenuFilters()">Reset Filters</button>
+</div>
+{% endblock %}
